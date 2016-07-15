@@ -19,6 +19,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
+import java.util.Arrays;
 import java.util.List;
 
 import javax.lang.model.element.Element;
@@ -93,6 +94,20 @@ public class ContentProviderDefinition extends BaseDefinition {
                 .getDatabaseHolderDefinition(databaseName).getDatabaseDefinition();
         databaseNameString = databaseDefinition.databaseName;
         setOutputClassName(databaseDefinition.classSeparator + DEFINITION_NAME);
+    }
+
+    @Override
+    public TypeSpec getTypeSpec() {
+        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder(outputClassName.simpleName())
+            .addModifiers(Modifier.PUBLIC)
+            .addSuperinterfaces(Arrays.asList(getImplementsClasses()));
+        TypeName extendsClass = getExtendsClass();
+        if (extendsClass != null) {
+            typeBuilder.superclass(extendsClass);
+        }
+        typeBuilder.addJavadoc("This is generated code. Please do not modify");
+        onWriteDefinition(typeBuilder);
+        return typeBuilder.build();
     }
 
     @Override
