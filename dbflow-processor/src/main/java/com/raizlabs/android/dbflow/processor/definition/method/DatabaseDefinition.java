@@ -4,7 +4,6 @@ import com.raizlabs.android.dbflow.annotation.ConflictAction;
 import com.raizlabs.android.dbflow.annotation.Database;
 import com.raizlabs.android.dbflow.processor.ClassNames;
 import com.raizlabs.android.dbflow.processor.definition.BaseDefinition;
-import com.raizlabs.android.dbflow.processor.definition.ManyToManyDefinition;
 import com.raizlabs.android.dbflow.processor.definition.MigrationDefinition;
 import com.raizlabs.android.dbflow.processor.definition.ModelViewDefinition;
 import com.raizlabs.android.dbflow.processor.definition.QueryModelDefinition;
@@ -22,6 +21,7 @@ import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -214,7 +214,14 @@ public class DatabaseDefinition extends BaseDefinition implements TypeDefinition
             }
         }
 
-        for (ModelViewDefinition modelViewDefinition : manager.getModelViewDefinitions(elementClassName)) {
+        List<ModelViewDefinition> sortedModelViewDefinitionList = new ArrayList<>(manager.getModelViewDefinitions(elementClassName));
+        Collections.sort(sortedModelViewDefinitionList, new Comparator<ModelViewDefinition>() {
+            @Override
+            public int compare(ModelViewDefinition modelViewDefinition, ModelViewDefinition modelViewDefinitionOther) {
+                return Integer.valueOf(modelViewDefinitionOther.priority).compareTo(modelViewDefinition.priority);
+            }
+        });
+        for (ModelViewDefinition modelViewDefinition : sortedModelViewDefinitionList) {
             constructor.addStatement("$L.add($T.class)", DatabaseHandler.MODEL_VIEW_FIELD_NAME, modelViewDefinition.elementClassName);
             constructor.addStatement("$L.put($T.class, new $T(holder, this))", DatabaseHandler.MODEL_VIEW_ADAPTER_MAP_FIELD_NAME,
                 modelViewDefinition.elementClassName, modelViewDefinition.outputClassName);
